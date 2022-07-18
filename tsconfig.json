@@ -5,7 +5,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "module": "ES2022",
+    "target": "ES2019",
+    "lib": ["ES2019", "DOM"]
   },
 
   "references": [
