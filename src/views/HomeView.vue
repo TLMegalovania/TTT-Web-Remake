@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { conn } from "@/logic/Connection";
 import { errMsgKey, nicknameKey } from "@/Type";
-import { computed, inject, ref, type Ref } from "vue";
+import { inject, ref, type Ref } from "vue";
 import router from "@/router";
 
 conn.stop();
-// const playerState = inject<Ref<PlayerState>>(playerStateKey)!;
 const nickname = inject<Ref<string>>(nicknameKey)!;
 const errMsg = inject<Ref<string | undefined>>(errMsgKey)!;
 
@@ -18,7 +17,6 @@ const logIn = () => {
     .start()
     .then(() => conn.invoke("login", input.value?.value ?? "Noob"))
     .then(() => {
-      // playerState.value = PlayerState.Online;
       nickname.value = input.value?.value ?? "Noob";
       return router.push("/hall");
     })

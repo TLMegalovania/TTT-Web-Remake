@@ -2,8 +2,8 @@ import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import HallView from "../views/HallView.vue";
 import RoomView from "@/views/RoomView.vue";
-// import { conn } from "@/logic/Connection";
-// import { HubConnectionState } from "@microsoft/signalr";
+import { conn } from "@/logic/Connection";
+import { HubConnectionState } from "@microsoft/signalr";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,18 +11,18 @@ const router = createRouter({
     {
       path: "/",
       component: HomeView,
-      name: "home"
+      name: "home",
     },
     {
       path: "/hall",
       component: HallView,
-      name: "hall"
+      name: "hall",
     },
     {
       path: "/room/:id",
       component: RoomView,
       name: "room",
-      props: true
+      props: true,
     },
     {
       path: "/:any(.*)*",
@@ -31,8 +31,8 @@ const router = createRouter({
   ],
 });
 
-// router.beforeEach(
-//   (to) => to.name == "home" || conn.state == HubConnectionState.Connected || "/"
-// );
+router.beforeEach(
+  (to) => to.name == "home" || conn.state == HubConnectionState.Connected || "/"
+);
 
 export default router;

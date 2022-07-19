@@ -1,22 +1,10 @@
 <script setup lang="ts">
 import { conn } from "@/logic/Connection";
 import router from "@/router";
-import {
-  nicknameKey,
-  type RoomInfo,
-  RoomState,
-  // PlayerState,
-  // playerStateKey,
-  // PlayerType,
-  // playerTypeKey,
-  // roomInfoKey,
-} from "@/Type";
+import { nicknameKey, type RoomInfo, RoomState } from "@/Type";
 import { inject, onUnmounted, ref, shallowRef, type Ref } from "vue";
 
 const nickname = inject<Ref<string>>(nicknameKey)!;
-// const playerState = inject<Ref<PlayerState>>(playerStateKey)!;
-// const playerType = inject<Ref<PlayerType>>(playerTypeKey)!;
-// const roomInfo = inject<Ref<RoomInfo | null>>(roomInfoKey)!;
 const rooms = shallowRef<RoomInfo[]>();
 const connecting = ref(false);
 conn.on("gotRooms", (_rooms) => (rooms.value = _rooms));
@@ -32,15 +20,6 @@ const hostGame = () => {
   conn
     .invoke("createRoom")
     .then((id: string) => {
-      // playerState.value = PlayerState.Ready;
-      // playerType.value = PlayerType.Host;
-      // roomInfo.value = {
-      //   id: id,
-      //   name: input.value?.value ?? `${nickname.value}'s Room`,
-      //   host: nickname.value,
-      //   state: RoomState.Available,
-      //   ready: false,
-      // };
       router.push(`/room/${id}`);
     })
     .finally(() => (connecting.value = false));

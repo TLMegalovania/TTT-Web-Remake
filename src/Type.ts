@@ -1,11 +1,3 @@
-// enum PlayerState {
-//   Offline,
-//   Online,
-//   NotReady,
-//   Ready,
-//   InGame,
-// }
-
 enum PlayerType {
   None,
   Host,
@@ -55,20 +47,6 @@ type BoardInfo = {
 
 const nicknameKey = Symbol(),
   errMsgKey = Symbol();
-// playerTypeKey = Symbol();
-// roomInfoKey = Symbol();
 
-export {
-  //PlayerState,
-  //playerStateKey,
-  nicknameKey,
-  RoomState,
-  errMsgKey,
-  PlayerType,
-  PieceType,
-  WinType,
-
-  // playerTypeKey,
-  // roomInfoKey,
-};
+export { nicknameKey, RoomState, errMsgKey, PlayerType, PieceType, WinType };
 export type { RoomInfo, RoomDetail, BoardInfo };
