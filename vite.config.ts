@@ -12,9 +12,6 @@ export default defineConfig({
     },
   },
   server: {
-    host: "localhost",
-    port: 14514,
-    strictPort: true,
     proxy: {
       "/ws": {
         target: "ws://localhost:19810/ws",

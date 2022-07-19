@@ -1,9 +1,15 @@
-enum PlayerState {
-  Offline,
-  Online,
-  NotReady,
-  Ready,
-  InGame,
+// enum PlayerState {
+//   Offline,
+//   Online,
+//   NotReady,
+//   Ready,
+//   InGame,
+// }
+
+enum PlayerType {
+  None,
+  Host,
+  Guest,
   Observer,
 }
 
@@ -13,6 +19,19 @@ enum RoomState {
   InGame,
 }
 
+enum PieceType {
+  Null,
+  Black,
+  White,
+}
+
+enum WinType {
+  Null,
+  Tie,
+  Black,
+  White,
+}
+
 type RoomInfo = {
   id: string;
   name: string;
@@ -20,8 +39,36 @@ type RoomInfo = {
   state: RoomState;
 };
 
-const playerStateKey = Symbol(),
-  nicknameKey = Symbol();
+type RoomDetail = {
+  name: string;
+  host: string;
+  guest?: string;
+  ready: boolean;
+  started: boolean;
+};
 
-export { PlayerState, playerStateKey, nicknameKey, RoomState };
-export type { RoomInfo };
+type BoardInfo = {
+  board: PieceType[];
+  turn: PlayerType;
+  result: WinType;
+};
+
+const nicknameKey = Symbol(),
+  errMsgKey = Symbol();
+// playerTypeKey = Symbol();
+// roomInfoKey = Symbol();
+
+export {
+  //PlayerState,
+  //playerStateKey,
+  nicknameKey,
+  RoomState,
+  errMsgKey,
+  PlayerType,
+  PieceType,
+  WinType,
+
+  // playerTypeKey,
+  // roomInfoKey,
+};
+export type { RoomInfo, RoomDetail, BoardInfo };

@@ -5,35 +5,70 @@ import {
   nicknameKey,
   type RoomInfo,
   RoomState,
-  PlayerState,
-  playerStateKey,
+  // PlayerState,
+  // playerStateKey,
+  // PlayerType,
+  // playerTypeKey,
+  // roomInfoKey,
 } from "@/Type";
-import { inject, ref, type Ref } from "vue";
+import { inject, onUnmounted, ref, shallowRef, type Ref } from "vue";
 
 const nickname = inject<Ref<string>>(nicknameKey)!;
-const playerState = inject<Ref<PlayerState>>(playerStateKey)!;
-const rooms = ref<RoomInfo[]>();
-conn.on("getRooms", (_rooms) => (rooms.value = _rooms));
+// const playerState = inject<Ref<PlayerState>>(playerStateKey)!;
+// const playerType = inject<Ref<PlayerType>>(playerTypeKey)!;
+// const roomInfo = inject<Ref<RoomInfo | null>>(roomInfoKey)!;
+const rooms = shallowRef<RoomInfo[]>();
+const connecting = ref(false);
+conn.on("gotRooms", (_rooms) => (rooms.value = _rooms));
+onUnmounted(() => {
+  conn.off("gotRooms");
+});
 const joinRoom = (id: string) => {
-  conn.invoke("joinRoom", id).then((state: PlayerState) => {
-    if (state != PlayerState.Online) {
+  router.push(`/room/${id}`);
+};
+const input = ref<HTMLInputElement>();
+const hostGame = () => {
+  connecting.value = true;
+  conn
+    .invoke("createRoom")
+    .then((id: string) => {
+      // playerState.value = PlayerState.Ready;
+      // playerType.value = PlayerType.Host;
+      // roomInfo.value = {
+      //   id: id,
+      //   name: input.value?.value ?? `${nickname.value}'s Room`,
+      //   host: nickname.value,
+      //   state: RoomState.Available,
+      //   ready: false,
+      // };
       router.push(`/room/${id}`);
-      playerState.value = state;
-    }
-  });
+    })
+    .finally(() => (connecting.value = false));
 };
 </script>
 
 <template>
   <div class="px-7 py-2 w-screen grid grid-cols-3 gap-3">
     <h2 class="text-center text-2xl col-span-full">Hello, {{ nickname }}!</h2>
+    <input
+      class="p-2 col-span-2 placeholder:italic"
+      :placeholder="`${nickname}'s Room`"
+      ref="input"
+    />
+    <button
+      class="col-start-3 bg-cyan-400 hover:bg-cyan-600 transition-colors text-center p-2 text-lg"
+      @click="hostGame"
+      :disabled="connecting"
+    >
+      Host
+    </button>
     <div class="text-center">Room</div>
     <div class="text-center">Host</div>
     <div class="text-center">State</div>
   </div>
   <div
     v-for="room in rooms"
-    class="px-7 py-2 w-screen grid grid-cols-3 gap-5"
+    class="px-7 py-2 w-screen grid grid-cols-3 gap-5 hover:shadow-md transition-shadow"
     @click="joinRoom(room.id)"
     :key="room.id"
   >

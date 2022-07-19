@@ -1,45 +1,35 @@
 <script setup lang="ts">
 import { conn } from "@/logic/Connection";
-import { delay } from "@/utils/Delay";
-import { nicknameKey, PlayerState, playerStateKey } from "@/Type";
+import { errMsgKey, nicknameKey } from "@/Type";
 import { computed, inject, ref, type Ref } from "vue";
-import Error from "../components/Error.vue";
 import router from "@/router";
-console.log("homeview");
+
 conn.stop();
-const playerState = inject<Ref<PlayerState>>(playerStateKey);
-const nickname = inject<Ref<string>>(nicknameKey);
-if (!(playerState && nickname)) throw "not injected";
+// const playerState = inject<Ref<PlayerState>>(playerStateKey)!;
+const nickname = inject<Ref<string>>(nicknameKey)!;
+const errMsg = inject<Ref<string | undefined>>(errMsgKey)!;
+
 const input = ref<HTMLInputElement>();
 const connecting = ref(false);
-const buttonClass = computed(() => {
-  if (connecting.value)
-    return ["bg-emerald-100", "cursor-wait", "animate-spin"];
-  else return ["bg-emerald-200", "hover:bg-green-500", "transition-colors"];
-});
-const connErr = ref<string | null>(null);
+
 const logIn = () => {
   connecting.value = true;
   conn
     .start()
     .then(() => conn.invoke("login", input.value?.value ?? "Noob"))
     .then(() => {
-      playerState.value = PlayerState.Online;
+      // playerState.value = PlayerState.Online;
       nickname.value = input.value?.value ?? "Noob";
+      return router.push("/hall");
     })
-    .then(() => router.push("/hall"))
-    .catch(async (reason) => {
-      console.warn(reason);
-      connecting.value = false;
-      connErr.value = reason;
-      await delay(5000);
-      connErr.value = null;
-    });
+    .catch(() => {
+      errMsg.value = "Internal Server Error";
+    })
+    .finally(() => (connecting.value = false));
 };
 </script>
 
 <template>
-  <Error :err="connErr"></Error>
   <div>
     <h1 class="text-gray-500 w-screen absolute top-1/3 text-center text-2xl">
       Enter your nickname...
@@ -51,10 +41,9 @@ const logIn = () => {
       ref="input"
     />
     <button
-      class="absolute bottom-1/3 text-center inset-x-0 m-auto text-xl h-10 min-w-fit max-w-sm w-1/6"
+      class="absolute bottom-1/3 text-center inset-x-0 m-auto text-xl h-10 min-w-fit max-w-sm w-1/6 bg-emerald-200 hover:bg-green-500 transition-colors disabled:cursor-wait disabled:animate-spin"
       @click="logIn"
       :disabled="connecting"
-      :class="buttonClass"
     >
       {{ connecting ? "Connecting..." : "Log in" }}
     </button>
