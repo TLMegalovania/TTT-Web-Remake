@@ -21,7 +21,9 @@ const joinRoom = (id: string) => {
 const input = ref<HTMLInputElement>();
 const hostGame = () => {
   connecting.value = true;
-  conn.invoke("createRoom").finally(() => (connecting.value = false));
+  conn
+    .invoke("createRoom", input.value?.value)
+    .finally(() => (connecting.value = false));
 };
 </script>
 
