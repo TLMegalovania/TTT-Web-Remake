@@ -8,8 +8,12 @@ const nickname = inject<Ref<string>>(nicknameKey)!;
 const rooms = shallowRef<RoomInfo[]>();
 const connecting = ref(false);
 conn.on("gotRooms", (_rooms) => (rooms.value = _rooms));
+conn.on("createdRoom", (id: string) => {
+  router.push(`/room/${id}`);
+});
 onUnmounted(() => {
   conn.off("gotRooms");
+  conn.off("createdRoom");
 });
 const joinRoom = (id: string) => {
   router.push(`/room/${id}`);
@@ -17,12 +21,7 @@ const joinRoom = (id: string) => {
 const input = ref<HTMLInputElement>();
 const hostGame = () => {
   connecting.value = true;
-  conn
-    .invoke("createRoom")
-    .then((id: string) => {
-      router.push(`/room/${id}`);
-    })
-    .finally(() => (connecting.value = false));
+  conn.invoke("createRoom").finally(() => (connecting.value = false));
 };
 </script>
 

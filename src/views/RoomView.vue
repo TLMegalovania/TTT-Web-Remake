@@ -14,6 +14,8 @@ import router from "@/router";
 onUnmounted(() => {
   conn.off("gotRoom");
   conn.off("gotBoard");
+  conn.off('joinedRoom')
+  conn.invoke('leaveRoom')
 });
 
 const props = defineProps<{
@@ -22,7 +24,8 @@ const props = defineProps<{
 const errMsg = inject<Ref<string | undefined>>(errMsgKey)!;
 const playerType = ref(PlayerType.None);
 
-conn.invoke("joinRoom", props.id).then((t: PlayerType) => {
+conn.invoke("joinRoom", props.id)
+conn.on('joinedRoom',(t: PlayerType) => {
   playerType.value = t;
   if (t == PlayerType.None) {
     router.push("/hall");
