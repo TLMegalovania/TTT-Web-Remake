@@ -28,32 +28,34 @@ const hostGame = () => {
 </script>
 
 <template>
-  <div class="px-7 py-2 w-screen grid grid-cols-3 gap-3">
+  <div class="px-7 py-2 w-screen grid grid-cols-4 gap-3">
     <h2 class="text-center text-2xl col-span-full">Hello, {{ nickname }}!</h2>
     <input
-      class="p-2 col-span-2 placeholder:italic"
+      class="p-2 col-span-3 placeholder:italic"
       :placeholder="`${nickname}'s Room`"
       ref="input"
     />
     <button
-      class="col-start-3 bg-cyan-400 hover:bg-cyan-600 transition-colors text-center p-2 text-lg"
+      class="col-span-1 bg-cyan-400 hover:bg-cyan-600 transition-colors text-center p-2 text-lg"
       @click="hostGame"
       :disabled="connecting"
     >
-      Host
+      Create
     </button>
     <div class="text-center">Room</div>
-    <div class="text-center">Host</div>
+    <div class="text-center">Player1</div>
+    <div class="text-center">Player2</div>
     <div class="text-center">State</div>
   </div>
   <div
     v-for="room in rooms"
-    class="px-7 py-2 w-screen grid grid-cols-3 gap-5 hover:shadow-md transition-shadow"
+    class="px-7 py-2 w-screen grid grid-cols-4 gap-5 hover:shadow-md transition-shadow"
     @click="joinRoom(room.id)"
     :key="room.id"
   >
     <div class="p-3">{{ room.name }}</div>
-    <div class="p-3">{{ room.host }}</div>
+    <div class="p-3">{{ room.player1 }}</div>
+    <div class="p-3">{{ room.player2 }}</div>
     <div class="p-3">{{ RoomState[room.state] }}</div>
   </div>
 </template>

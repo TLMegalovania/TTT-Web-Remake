@@ -22,21 +22,23 @@ enum WinType {
   Tie,
   Black,
   White,
+  Flee,
 }
 
 type RoomInfo = {
   id: string;
   name: string;
-  host: string;
+  player1: string;
+  player2: string;
   state: RoomState;
 };
 
 type RoomDetail = {
   name: string;
-  host: string;
-  guest?: string;
-  ready: boolean;
-  started: boolean;
+  player1: string;
+  player2: string;
+  p1Ready: boolean;
+  p2Ready: boolean;
 };
 
 type BoardInfo = {

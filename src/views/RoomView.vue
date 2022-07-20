@@ -14,8 +14,8 @@ import router from "@/router";
 onUnmounted(() => {
   conn.off("gotRoom");
   conn.off("gotBoard");
-  conn.off('joinedRoom')
-  conn.invoke('leaveRoom')
+  conn.off("joinedRoom");
+  conn.invoke("leaveRoom");
 });
 
 const props = defineProps<{
@@ -24,8 +24,8 @@ const props = defineProps<{
 const errMsg = inject<Ref<string | undefined>>(errMsgKey)!;
 const playerType = ref(PlayerType.None);
 
-conn.invoke("joinRoom", props.id)
-conn.on('joinedRoom',(t: PlayerType) => {
+conn.invoke("joinRoom", props.id);
+conn.on("joinedRoom", (t: PlayerType) => {
   playerType.value = t;
   if (t == PlayerType.None) {
     router.push("/hall");
@@ -36,10 +36,14 @@ conn.on('joinedRoom',(t: PlayerType) => {
 const roomDetail = ref<RoomDetail>();
 const startDisabled = ref(false);
 const turn = ref(PlayerType.None);
-const startGame = async () => {
+const startOrJoin = () => {
   startDisabled.value = true;
-  await conn.invoke("startGame");
-  startDisabled.value = false;
+  if (playerType.value != PlayerType.Observer)
+    conn.invoke("startGame").finally(() => (startDisabled.value = false));
+  else
+    conn
+      .invoke("joinRoom", props.id)
+      .finally(() => (startDisabled.value = false));
 };
 conn.on("gotRoom", (detail: RoomDetail) => {
   roomDetail.value = detail;
@@ -55,6 +59,8 @@ conn.on("gotBoard", (b: BoardInfo) => {
   turn.value = b.turn;
   result.value = b.result;
 });
+
+const ready = ref(false);
 </script>
 
 <template>
@@ -62,28 +68,28 @@ conn.on("gotBoard", (b: BoardInfo) => {
     <div
       class="col-start-1 col-span-1 text-gray-800 text-lg shadow-md shadow-slate-200"
     >
-      Black: {{ roomDetail?.host }}
-    </div>
-    <div v-if="roomDetail?.ready || roomDetail?.started" class="col-span-1">
-      {{ roomDetail?.started ? "Game" : roomDetail?.ready ? "Ready" : "" }}
+      Black: {{ roomDetail?.player1 }}
     </div>
     <div
       class="col-start-3 col-span-1 text-gray-200 text-lg shadow-md shadow-slate-800"
     >
-      White: {{ roomDetail?.guest }}
+      White: {{ roomDetail?.player2 }}
     </div>
     <button
-      v-if="!(roomDetail?.started || playerType == PlayerType.Observer)"
+      v-if="
+        !(
+          (roomDetail?.p1Ready && roomDetail.p2Ready) ||
+          (playerType == PlayerType.Observer &&
+            roomDetail?.player1 != '' &&
+            roomDetail?.player2 != '')
+        )
+      "
       class="col-span-1 text-center p-1 bg-pink-300 hover:bg-pink-600 transition-colors"
-      @click="startGame"
+      @click="startOrJoin"
       :disabled="startDisabled"
     >
       {{
-        playerType == PlayerType.Host
-          ? "Start"
-          : roomDetail?.ready
-          ? "Unready"
-          : "Ready"
+        playerType == PlayerType.Observer ? "Join" : ready ? "Unready" : "Ready"
       }}
     </button>
     <div
@@ -93,7 +99,9 @@ conn.on("gotBoard", (b: BoardInfo) => {
         v-for="(piece, index) in board"
         class="text-center p-1 text-base cursor-pointer"
         :disabled="
-          !roomDetail?.started || playerType != turn || piece != PieceType.Null
+          !(roomDetail?.p1Ready && roomDetail.p2Ready) ||
+          playerType != turn ||
+          piece != PieceType.Null
         "
         @click="go(index)"
       >
@@ -104,7 +112,7 @@ conn.on("gotBoard", (b: BoardInfo) => {
     </div>
     <div
       class="row-span-3 text-center text-lg font-bold p-5"
-      v-if="roomDetail?.started"
+      v-if="roomDetail?.p1Ready && roomDetail.p2Ready"
     >
       Now<br />{{
         turn == PlayerType.Host ? "⚫" : turn == PlayerType.Guest ? "⚪" : ""
@@ -114,9 +122,9 @@ conn.on("gotBoard", (b: BoardInfo) => {
       class="row-span-3 text-center text-lg font-bold p-5"
       v-else-if="result != WinType.Null"
     >
-      {{ result == WinType.Tie ? "Tie" : "Win" }}
-      <br />
       {{ result == WinType.Black ? "⚫" : result == WinType.White ? "⚪" : "" }}
+      <br />
+      {{ result == WinType.Tie ? "Tie" : "Win" }}
     </div>
   </div>
 </template>
