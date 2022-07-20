@@ -22,7 +22,10 @@ const input = ref<HTMLInputElement>();
 const hostGame = () => {
   connecting.value = true;
   conn
-    .invoke("createRoom", input.value?.value)
+    .invoke(
+      "createRoom",
+      input.value?.value == "" ? `${nickname.value}'s Room` : input.value?.value
+    )
     .finally(() => (connecting.value = false));
 };
 </script>
@@ -50,12 +53,12 @@ const hostGame = () => {
   <div
     v-for="room in rooms"
     class="px-7 py-2 w-screen grid grid-cols-4 gap-5 hover:shadow-md transition-shadow"
-    @click="joinRoom(room.id)"
-    :key="room.id"
+    @click="joinRoom(room.Id)"
+    :key="room.Id"
   >
-    <div class="p-3">{{ room.name }}</div>
-    <div class="p-3">{{ room.player1 }}</div>
-    <div class="p-3">{{ room.player2 }}</div>
-    <div class="p-3">{{ RoomState[room.state] }}</div>
+    <div class="p-3">{{ room.Name }}</div>
+    <div class="p-3">{{ room.Player1 }}</div>
+    <div class="p-3">{{ room.Player2 }}</div>
+    <div class="p-3">{{ RoomState[room.State] }}</div>
   </div>
 </template>

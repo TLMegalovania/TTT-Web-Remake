@@ -7,7 +7,7 @@ import {
   type BoardInfo,
   type RoomDetail,
 } from "@/Type";
-import { inject, ref, type Ref, onUnmounted } from "vue";
+import { inject, ref, type Ref, onUnmounted, shallowRef } from "vue";
 import { conn } from "@/logic/Connection";
 import router from "@/router";
 
@@ -15,6 +15,7 @@ onUnmounted(() => {
   conn.off("gotRoom");
   conn.off("gotBoard");
   conn.off("joinedRoom");
+  conn.off("deletedRoom");
   conn.invoke("leaveRoom");
 });
 
@@ -32,32 +33,41 @@ conn.on("joinedRoom", (t: PlayerType) => {
     errMsg.value = "The room doesn't exist.";
   }
 });
+conn.on("deletedRoom", () => router.push("/hall"));
 
 const roomDetail = ref<RoomDetail>();
-const startDisabled = ref(false);
 const turn = ref(PlayerType.None);
 const startOrJoin = () => {
-  startDisabled.value = true;
-  if (playerType.value != PlayerType.Observer)
-    conn.invoke("startGame").finally(() => (startDisabled.value = false));
-  else
-    conn
-      .invoke("joinRoom", props.id)
-      .finally(() => (startDisabled.value = false));
+  if (playerType.value != PlayerType.Observer) {
+    conn.invoke("startGame");
+    ready.value = !ready.value;
+  } else {
+    conn.invoke("joinRoom", props.id);
+  }
 };
 conn.on("gotRoom", (detail: RoomDetail) => {
   roomDetail.value = detail;
 });
 
-const board = ref<PieceType[]>();
+const board = shallowRef<PieceType[]>();
 const result = ref(WinType.Null);
 const go = (index: number) => {
   conn.invoke("go", index);
 };
 conn.on("gotBoard", (b: BoardInfo) => {
-  board.value = b.board;
-  turn.value = b.turn;
-  result.value = b.result;
+  board.value = b.Board;
+  turn.value =
+    b.Turn == PieceType.Black
+      ? PlayerType.Host
+      : b.Turn == PieceType.White
+      ? PlayerType.Guest
+      : PlayerType.None;
+  result.value = b.Result;
+  ready.value = false;
+  console.log(
+    !(roomDetail.value?.P1Ready && roomDetail.value.P2Ready) ||
+      playerType != turn
+  );
 });
 
 const ready = ref(false);
@@ -68,25 +78,24 @@ const ready = ref(false);
     <div
       class="col-start-1 col-span-1 text-gray-800 text-lg shadow-md shadow-slate-200"
     >
-      Black: {{ roomDetail?.player1 }}
+      {{ roomDetail?.P1Ready ? "⚫" : "" }} Black: {{ roomDetail?.Player1 }}
     </div>
     <div
       class="col-start-3 col-span-1 text-gray-200 text-lg shadow-md shadow-slate-800"
     >
-      White: {{ roomDetail?.player2 }}
+      {{ roomDetail?.P2Ready ? "⚪" : "" }} White: {{ roomDetail?.Player2 }}
     </div>
     <button
       v-if="
         !(
-          (roomDetail?.p1Ready && roomDetail.p2Ready) ||
+          (roomDetail?.P1Ready && roomDetail.P2Ready) ||
           (playerType == PlayerType.Observer &&
-            roomDetail?.player1 != '' &&
-            roomDetail?.player2 != '')
+            roomDetail?.Player1 != '' &&
+            roomDetail?.Player2 != '')
         )
       "
       class="col-span-1 text-center p-1 bg-pink-300 hover:bg-pink-600 transition-colors"
       @click="startOrJoin"
-      :disabled="startDisabled"
     >
       {{
         playerType == PlayerType.Observer ? "Join" : ready ? "Unready" : "Ready"
@@ -99,7 +108,7 @@ const ready = ref(false);
         v-for="(piece, index) in board"
         class="text-center p-1 text-base cursor-pointer"
         :disabled="
-          !(roomDetail?.p1Ready && roomDetail.p2Ready) ||
+          !(roomDetail?.P1Ready && roomDetail.P2Ready) ||
           playerType != turn ||
           piece != PieceType.Null
         "
@@ -112,7 +121,7 @@ const ready = ref(false);
     </div>
     <div
       class="row-span-3 text-center text-lg font-bold p-5"
-      v-if="roomDetail?.p1Ready && roomDetail.p2Ready"
+      v-if="roomDetail?.P1Ready && roomDetail.P2Ready"
     >
       Now<br />{{
         turn == PlayerType.Host ? "⚫" : turn == PlayerType.Guest ? "⚪" : ""
@@ -122,9 +131,23 @@ const ready = ref(false);
       class="row-span-3 text-center text-lg font-bold p-5"
       v-else-if="result != WinType.Null"
     >
-      {{ result == WinType.Black ? "⚫" : result == WinType.White ? "⚪" : "" }}
+      {{
+        result == WinType.Flee
+          ? roomDetail?.Player1 == ""
+            ? "⚫"
+            : roomDetail?.Player2 == ""
+            ? "⚪"
+            : ""
+          : result == WinType.Black
+          ? "⚫"
+          : result == WinType.White
+          ? "⚪"
+          : ""
+      }}
       <br />
-      {{ result == WinType.Tie ? "Tie" : "Win" }}
+      {{
+        result == WinType.Tie ? "Tie" : result == WinType.Flee ? "Flee" : "Win"
+      }}
     </div>
   </div>
 </template>

@@ -26,25 +26,25 @@ enum WinType {
 }
 
 type RoomInfo = {
-  id: string;
-  name: string;
-  player1: string;
-  player2: string;
-  state: RoomState;
+  Id: string;
+  Name: string;
+  Player1: string;
+  Player2: string;
+  State: RoomState;
 };
 
 type RoomDetail = {
-  name: string;
-  player1: string;
-  player2: string;
-  p1Ready: boolean;
-  p2Ready: boolean;
+  Name: string;
+  Player1: string;
+  Player2: string;
+  P1Ready: boolean;
+  P2Ready: boolean;
 };
 
 type BoardInfo = {
-  board: PieceType[];
-  turn: PlayerType;
-  result: WinType;
+  Board: PieceType[];
+  Turn: PieceType;
+  Result: WinType;
 };
 
 const nicknameKey = Symbol(),
