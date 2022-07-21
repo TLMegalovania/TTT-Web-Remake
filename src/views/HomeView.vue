@@ -37,7 +37,7 @@ const logIn = () => {
     <input
       class="placeholder:italic bg-slate-300 absolute inset-x-1/4 inset-y-0 h-10 m-auto rounded-full p-4"
       placeholder="Noob"
-      maxlength="20"
+      maxlength="10"
       v-model="input"
     />
     <button

@@ -26,15 +26,12 @@ enum WinType {
 }
 
 type RoomInfo = {
-  Id: string;
-  Name: string;
   Player1: string;
   Player2: string;
   State: RoomState;
 };
 
 type RoomDetail = {
-  Name: string;
   Player1: string;
   Player2: string;
   P1Ready: boolean;

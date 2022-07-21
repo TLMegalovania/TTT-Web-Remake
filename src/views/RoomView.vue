@@ -7,7 +7,7 @@ import {
   type BoardInfo,
   type RoomDetail,
 } from "@/Type";
-import { inject, ref, type Ref, onUnmounted, shallowRef } from "vue";
+import { inject, ref, type Ref, onUnmounted, shallowRef, computed } from "vue";
 import { conn } from "@/logic/Connection";
 import router from "@/router";
 
@@ -15,32 +15,28 @@ onUnmounted(() => {
   conn.off("gotRoom");
   conn.off("gotBoard");
   conn.off("joinedRoom");
-  conn.off("deletedRoom");
   conn.invoke("leaveRoom");
 });
 
 const props = defineProps<{
-  id: string;
+  id: number;
 }>();
 const errMsg = inject<Ref<string | undefined>>(errMsgKey)!;
 const playerType = ref(PlayerType.None);
 
-conn.invoke("joinRoom", props.id);
+conn.invoke("joinRoom", props.id).catch((reason: Error) => {
+  router.push("/hall");
+  errMsg.value = reason.message;
+});
 conn.on("joinedRoom", (t: PlayerType) => {
   playerType.value = t;
-  if (t == PlayerType.None) {
-    router.push("/hall");
-    errMsg.value = "The room doesn't exist.";
-  }
 });
-conn.on("deletedRoom", () => router.push("/hall"));
 
 const roomDetail = ref<RoomDetail>();
 const turn = ref(PlayerType.None);
 const startOrJoin = () => {
   if (playerType.value != PlayerType.Observer) {
     conn.invoke("startGame");
-    ready.value = !ready.value;
   } else {
     conn.invoke("joinRoom", props.id);
   }
@@ -63,27 +59,33 @@ conn.on("gotBoard", (b: BoardInfo) => {
       ? PlayerType.Guest
       : PlayerType.None;
   result.value = b.Result;
-  ready.value = false;
   console.log(
     !(roomDetail.value?.P1Ready && roomDetail.value.P2Ready) ||
       playerType != turn
   );
 });
 
-const ready = ref(false);
+const ready = computed(() =>
+  playerType.value == PlayerType.Host
+    ? roomDetail.value?.P1Ready
+    : playerType.value == PlayerType.Guest
+    ? roomDetail.value?.P2Ready
+    : false
+);
 </script>
 
 <template>
-  <div class="grid px-6 grid-rows-4 grid-cols-4">
-    <div
-      class="col-start-1 col-span-1 text-gray-800 text-lg shadow-md shadow-slate-200"
-    >
-      {{ roomDetail?.P1Ready ? "⚫" : "" }} Black: {{ roomDetail?.Player1 }}
+  <div class="grid px-6 grid-cols-4">
+    <div class="col-span-1 text-gray-800 text-lg shadow-md shadow-slate-200">
+      {{ roomDetail?.P1Ready ? "⚫" : "" }} {{ roomDetail?.Player1 }}
     </div>
     <div
-      class="col-start-3 col-span-1 text-gray-200 text-lg shadow-md shadow-slate-800"
+      class="col-span-1 text-lg bg-gradient-to-r from-gray-800 to-gray-200 text-green-600"
     >
-      {{ roomDetail?.P2Ready ? "⚪" : "" }} White: {{ roomDetail?.Player2 }}
+      {{ id }}
+    </div>
+    <div class="col-span-1 text-gray-200 text-lg shadow-md shadow-slate-800">
+      {{ roomDetail?.P2Ready ? "⚪" : "" }} {{ roomDetail?.Player2 }}
     </div>
     <button
       v-if="
@@ -101,53 +103,53 @@ const ready = ref(false);
         playerType == PlayerType.Observer ? "Join" : ready ? "Unready" : "Ready"
       }}
     </button>
-    <div
-      class="row-span-3 col-span-3 grid grid-cols-5 grid-rows-5 divide-x divide-y divide-gray-400"
-    >
-      <button
-        v-for="(piece, index) in board"
-        class="text-center p-1 text-base cursor-pointer"
-        :disabled="
-          !(roomDetail?.P1Ready && roomDetail.P2Ready) ||
-          playerType != turn ||
-          piece != PieceType.Null
-        "
-        @click="go(index)"
-      >
-        {{
-          piece == PieceType.Black ? "⚫" : piece == PieceType.White ? "⚪" : ""
-        }}
-      </button>
-    </div>
-    <div
-      class="row-span-3 text-center text-lg font-bold p-5"
-      v-if="roomDetail?.P1Ready && roomDetail.P2Ready"
-    >
-      Now<br />{{
-        turn == PlayerType.Host ? "⚫" : turn == PlayerType.Guest ? "⚪" : ""
-      }}
-    </div>
-    <div
-      class="row-span-3 text-center text-lg font-bold p-5"
-      v-else-if="result != WinType.Null"
+  </div>
+  <div
+    class="w-96 h-96 grid grid-cols-5 grid-rows-5 divide-x divide-y divide-gray-700"
+  >
+    <button
+      v-for="(piece, index) in board"
+      class="text-center text-base cursor-pointer disabled:cursor-not-allowed"
+      :disabled="
+        !(roomDetail?.P1Ready && roomDetail.P2Ready) ||
+        playerType != turn ||
+        piece != PieceType.Null
+      "
+      @click="go(index)"
     >
       {{
-        result == WinType.Flee
-          ? roomDetail?.Player1 == ""
-            ? "⚫"
-            : roomDetail?.Player2 == ""
-            ? "⚪"
-            : ""
-          : result == WinType.Black
+        piece == PieceType.Black ? "⚫" : piece == PieceType.White ? "⚪" : ""
+      }}
+    </button>
+  </div>
+  <div
+    class="h-96 text-center text-lg font-bold p-5"
+    v-if="roomDetail?.P1Ready && roomDetail.P2Ready"
+  >
+    Now<br />{{
+      turn == PlayerType.Host ? "⚫" : turn == PlayerType.Guest ? "⚪" : ""
+    }}
+  </div>
+  <div
+    class="h-96 text-center text-lg font-bold p-5"
+    v-else-if="result != WinType.Null"
+  >
+    {{
+      result == WinType.Flee
+        ? roomDetail?.Player1 == ""
           ? "⚫"
-          : result == WinType.White
+          : roomDetail?.Player2 == ""
           ? "⚪"
           : ""
-      }}
-      <br />
-      {{
-        result == WinType.Tie ? "Tie" : result == WinType.Flee ? "Flee" : "Win"
-      }}
-    </div>
+        : result == WinType.Black
+        ? "⚫"
+        : result == WinType.White
+        ? "⚪"
+        : ""
+    }}
+    <br />
+    {{
+      result == WinType.Tie ? "Tie" : result == WinType.Flee ? "Flee" : "Win"
+    }}
   </div>
 </template>

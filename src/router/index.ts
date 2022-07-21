@@ -19,10 +19,14 @@ const router = createRouter({
       name: "hall",
     },
     {
-      path: "/room/:id",
+      path: "/room/:id(\\d+)",
       component: RoomView,
       name: "room",
-      props: true,
+      props: (route) => {
+        return {
+          id: parseInt(route.params.id.toString()),
+        };
+      },
     },
     {
       path: "/:any(.*)*",
