@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { provide, ref, watch } from "vue";
 import { RouterView } from "vue-router";
-import {  errMsgKey,  nicknameKey,} from "./Type";
+import { errMsgKey, nicknameKey } from "./Type";
 import Logo from "./components/Logo.vue";
 import Error from "./components/Error.vue";
 import { delay } from "./utils/Delay";
@@ -18,7 +18,7 @@ watch(errMsg, async (nv) => {
 </script>
 
 <template>
-  <div class="bg-slate-400 h-screen">
+  <div class="bg-slate-400 h-full min-h-screen">
     <Logo />
     <Error v-if="errMsg" :err="errMsg" />
     <RouterView />

@@ -59,10 +59,6 @@ conn.on("gotBoard", (b: BoardInfo) => {
       ? PlayerType.Guest
       : PlayerType.None;
   result.value = b.Result;
-  console.log(
-    !(roomDetail.value?.P1Ready && roomDetail.value.P2Ready) ||
-      playerType != turn
-  );
 });
 
 const ready = computed(() =>
