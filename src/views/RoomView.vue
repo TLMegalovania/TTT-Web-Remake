@@ -100,12 +100,10 @@ const ready = computed(() =>
       }}
     </button>
   </div>
-  <div
-    class="w-96 h-96 grid grid-cols-5 grid-rows-5 divide-x divide-y divide-gray-700"
-  >
+  <div class="w-96 h-96 grid grid-cols-5 grid-rows-5 mx-auto my-6 p-6">
     <button
       v-for="(piece, index) in board"
-      class="text-center text-base cursor-pointer disabled:cursor-not-allowed"
+      class="text-center text-base cursor-pointer disabled:cursor-not-allowed border-2 border-gray-700"
       :disabled="
         !(roomDetail?.P1Ready && roomDetail.P2Ready) ||
         playerType != turn ||
@@ -119,7 +117,7 @@ const ready = computed(() =>
     </button>
   </div>
   <div
-    class="h-96 text-center text-lg font-bold p-5"
+    class="h-96 text-center text-lg font-bold p-5 mx-3"
     v-if="roomDetail?.P1Ready && roomDetail.P2Ready"
   >
     Now<br />{{
@@ -130,19 +128,7 @@ const ready = computed(() =>
     class="h-96 text-center text-lg font-bold p-5"
     v-else-if="result != WinType.Null"
   >
-    {{
-      result == WinType.Flee
-        ? roomDetail?.Player1 == ""
-          ? "⚫"
-          : roomDetail?.Player2 == ""
-          ? "⚪"
-          : ""
-        : result == WinType.Black
-        ? "⚫"
-        : result == WinType.White
-        ? "⚪"
-        : ""
-    }}
+    {{ result == WinType.Black ? "⚫" : result == WinType.White ? "⚪" : "" }}
     <br />
     {{
       result == WinType.Tie ? "Tie" : result == WinType.Flee ? "Flee" : "Win"
